@@ -1,0 +1,119 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true
+        || exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isFaculty() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && userDoc().role == 'faculty';
+    }
+
+    function isStaff() {
+      return isAdmin() || isFaculty();
+    }
+
+    // The faculty document id linked to the signed-in faculty account.
+    function myFacultyId() {
+      return userDoc().facultyId;
+    }
+
+    // Bootstrap admin: only the seeded admin account may self-register.
+    match /admins/{adminId} {
+      allow read: if isSignedIn() && request.auth.uid == adminId;
+      allow create: if isSignedIn()
+        && request.auth.uid == adminId
+        && request.auth.token.email == 'admin@face-recognition-f0aad.firebaseapp.com';
+      allow update: if isAdmin() || (isSignedIn() && request.auth.uid == adminId && exists(/databases/$(database)/documents/admins/$(adminId)));
+      allow delete: if isAdmin();
+    }
+
+    // Role documents for non-admin users (faculty).
+    match /users/{uid} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.facultyId == resource.data.facultyId
+      );
+    }
+
+    match /faculty/{facultyId} {
+      allow read: if isStaff();
+      allow create, delete: if isAdmin();
+      // Faculty may update their own record (display name, changed password).
+      allow update: if isAdmin() || (
+        isFaculty()
+        && facultyId == myFacultyId()
+        && request.resource.data.idNumber == resource.data.idNumber
+        && request.resource.data.authUid == resource.data.authUid
+      );
+    }
+
+    match /student/{studentId} {
+      allow read, write: if isStaff();
+    }
+
+    match /students/{studentId} {
+      allow read, write: if isStaff();
+    }
+
+    match /schedule/{scheduleId} {
+      allow read: if isStaff();
+      allow create: if isAdmin() || (isFaculty() && request.resource.data.teacherId == myFacultyId());
+      allow update: if isAdmin() || (
+        isFaculty()
+        && resource.data.teacherId == myFacultyId()
+        && request.resource.data.teacherId == myFacultyId()
+      );
+      allow delete: if isAdmin() || (isFaculty() && resource.data.teacherId == myFacultyId());
+    }
+
+    match /schedules/{scheduleId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Activity feed: every staff member sees it; anyone can mark items read.
+    match /notifications/{notificationId} {
+      allow read: if isStaff();
+      allow create: if isStaff() && request.resource.data.actorUid == request.auth.uid;
+      allow update: if isStaff()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']);
+      allow delete: if isAdmin();
+    }
+
+    match /monitoringEvents/{eventId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+
+    match /devices/{deviceId} {
+      allow read: if isStaff();
+      allow write: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "monitoring-admin-functions",
+  "description": "Cloud Functions for Monitoring Admin",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.2.0",
+    "firebase-functions": "^6.3.2",
+    "monitoring-admin": "file:.."
+  },
+  "private": true
+}

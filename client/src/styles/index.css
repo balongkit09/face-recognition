@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-slate-900: #0f172a;
+  --color-border-light: #f1f5f9;
+  --color-border: #e2e8f0;
+}
+
+body {
+  @apply m-0 font-sans antialiased text-slate-900 bg-white;
+}
+
+#root {
+  @apply min-h-screen;
+}

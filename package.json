@@ -1,0 +1,13 @@
+{
+  "name": "monitoring-admin",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix client\" \"firebase emulators:start\"",
+    "dev:client": "npm run dev --prefix client",
+    "build": "npm run build --prefix client",
+    "deploy": "firebase deploy"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
