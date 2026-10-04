@@ -9,6 +9,7 @@ import { auth, db } from '../firebase/config';
 import { resolveCredentials } from '../firebase/bootstrap';
 import { useAuth } from '../hooks/useAuth';
 import { notify } from '../firebase/notifications';
+import PreferencesSection from '../components/settings/PreferencesSection';
 import { FACULTY_BASE } from '../utils/routes';
 
 const inputCls =
@@ -26,7 +27,7 @@ export default function SettingsPage() {
         breadcrumbSection="SYSTEM"
         breadcrumbPage="SETTINGS"
         title="Settings"
-        description="Manage your account name, password and system information."
+        description="Manage your account, password and preferences."
         actions={
           <Link to={`${basePath}/profile`}>
             <Button variant="outline">
@@ -46,6 +47,7 @@ export default function SettingsPage() {
           updateDisplayName={updateDisplayName}
         />
         <PasswordSection isFaculty={isFaculty} profile={profile} />
+        <PreferencesSection />
 
         <section className="rounded-card border border-border-light bg-white p-5 shadow-card lg:col-span-2">
           <h2 className="text-base font-semibold text-slate-900">System</h2>
@@ -167,6 +169,7 @@ function PasswordSection({ isFaculty, profile }) {
         entity: 'account',
         title: `${fbUser.displayName || profile?.name || 'A user'} changed their password`,
         message: isFaculty ? `Faculty ID ${profile?.idNumber || ''}`.trim() : 'Administrator account',
+        audience: 'admin',
       });
       setCurrent('');
       setNext('');

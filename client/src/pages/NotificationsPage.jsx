@@ -4,6 +4,7 @@ import PageHeader from '../components/common/PageHeader';
 import Button from '../components/common/Button';
 import NotificationItem from '../components/layout/NotificationItem';
 import { useNotifications } from '../hooks/useNotifications';
+import { useAuth } from '../hooks/useAuth';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -14,8 +15,10 @@ const FILTERS = [
 ];
 
 export default function NotificationsPage() {
+  const { role } = useAuth();
   const { notifications, unreadCount, loading, error, markRead, markAllRead } = useNotifications(200);
   const [filter, setFilter] = useState('all');
+  const isFaculty = role === 'faculty';
 
   const visible = useMemo(() => {
     if (filter === 'all') return notifications;
@@ -29,7 +32,11 @@ export default function NotificationsPage() {
         breadcrumbSection="SYSTEM"
         breadcrumbPage="NOTIFICATIONS"
         title="Notifications"
-        description="Every add, update, delete and import in the system is recorded here in real time."
+        description={
+          isFaculty
+            ? 'Alerts for students you add, enroll, or remove. Admin dashboard activity is never shown here.'
+            : 'Faculty activity and system events appear here. Faculty cannot see these admin notifications.'
+        }
         actions={
           <Button variant="outline" onClick={() => markAllRead().catch(() => {})} disabled={!unreadCount}>
             <CheckCheck className="h-4 w-4" />
@@ -63,7 +70,9 @@ export default function NotificationsPage() {
         {!loading && visible.length === 0 && (
           <p className="rounded-card border border-border-light bg-white py-10 text-center text-body text-slate-500 shadow-card">
             {notifications.length === 0
-              ? 'No notifications yet. Adding or deleting faculty, students, or schedules will show up here.'
+              ? isFaculty
+                ? 'No notifications yet. Adding, enrolling, or removing a student will appear here.'
+                : 'No notifications yet. Faculty enrollments and other faculty activity will show up here.'
               : 'Nothing matches this filter.'}
           </p>
         )}

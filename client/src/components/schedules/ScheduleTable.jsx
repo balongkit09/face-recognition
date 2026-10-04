@@ -55,6 +55,7 @@ export default function ScheduleTable({
   onDelete,
   onExport,
   onImport,
+  readOnly = false,
 }) {
   const [filter, setFilter] = useState('');
   const [section, setSection] = useState('');
@@ -64,6 +65,7 @@ export default function ScheduleTable({
   const [page, setPage] = useState(1);
   const fileInputRef = useRef(null);
 
+  const columns = readOnly ? HEADERS.filter((h) => h !== 'Settings') : HEADERS;
   const sections = useMemo(() => uniqueSorted(schedules.map((s) => s.section)), [schedules]);
   const terms = useMemo(() => uniqueSorted(schedules.map((s) => s.term)), [schedules]);
 
@@ -121,31 +123,33 @@ export default function ScheduleTable({
           <Select value={type} onChange={setType} allLabel="All Types" options={SCHEDULE_TYPES} ariaLabel="Type" />
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={handleFile}
-          />
-          <ToolbarButton onClick={onExport} disabled={!schedules.length}>
-            <Download className="h-3.5 w-3.5" />
-            Export
-          </ToolbarButton>
-          <ToolbarButton onClick={() => fileInputRef.current?.click()}>
-            <Upload className="h-3.5 w-3.5" />
-            Import CSV
-          </ToolbarButton>
-          <button
-            type="button"
-            onClick={onAdd}
-            className="inline-flex items-center gap-1.5 rounded-btn bg-primary px-3 py-2 text-body font-medium text-white shadow-card hover:bg-primary-hover"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add Class Schedule
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={handleFile}
+            />
+            <ToolbarButton onClick={onExport} disabled={!schedules.length}>
+              <Download className="h-3.5 w-3.5" />
+              Export
+            </ToolbarButton>
+            <ToolbarButton onClick={() => fileInputRef.current?.click()}>
+              <Upload className="h-3.5 w-3.5" />
+              Import CSV
+            </ToolbarButton>
+            <button
+              type="button"
+              onClick={onAdd}
+              className="inline-flex items-center gap-1.5 rounded-btn bg-primary px-3 py-2 text-body font-medium text-white shadow-card hover:bg-primary-hover"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Add Class Schedule
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Desktop table */}
@@ -153,7 +157,7 @@ export default function ScheduleTable({
         <table className="w-full min-w-[1040px] border-collapse text-left">
           <thead>
             <tr className="border-y border-border-light bg-[#fafbfd]">
-              {HEADERS.map((h) => (
+              {columns.map((h) => (
                 <th
                   key={h}
                   className="whitespace-nowrap px-4 py-3 text-label font-semibold uppercase tracking-wide text-slate-500"
@@ -166,16 +170,18 @@ export default function ScheduleTable({
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={HEADERS.length} className="px-4 py-12 text-center text-body text-slate-500">
+                <td colSpan={columns.length} className="px-4 py-12 text-center text-body text-slate-500">
                   Loading schedules…
                 </td>
               </tr>
             )}
             {!loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={HEADERS.length} className="px-4 py-12 text-center text-body text-slate-500">
+                <td colSpan={columns.length} className="px-4 py-12 text-center text-body text-slate-500">
                   {schedules.length === 0
-                    ? 'No schedules yet. Click Add Class Schedule to save one to Firebase.'
+                    ? readOnly
+                      ? 'No classes are assigned to you yet.'
+                      : 'No schedules yet. Click Add Class Schedule to save one to Firebase.'
                     : 'No schedules match the current filters.'}
                 </td>
               </tr>
@@ -210,9 +216,11 @@ export default function ScheduleTable({
                   <td className="whitespace-nowrap px-4 py-3">
                     <StatusBadge status={s.status} />
                   </td>
-                  <td className="px-4 py-3">
-                    <RowActions schedule={s} onEdit={onEdit} onDelete={onDelete} />
-                  </td>
+                  {!readOnly && (
+                    <td className="px-4 py-3">
+                      <RowActions schedule={s} onEdit={onEdit} onDelete={onDelete} />
+                    </td>
+                  )}
                 </tr>
               ))}
           </tbody>
@@ -225,7 +233,9 @@ export default function ScheduleTable({
         {!loading && filtered.length === 0 && (
           <p className="py-6 text-center text-body text-slate-500">
             {schedules.length === 0
-              ? 'No schedules yet. Click Add Class Schedule to save one to Firebase.'
+              ? readOnly
+                ? 'No classes are assigned to you yet.'
+                : 'No schedules yet. Click Add Class Schedule to save one to Firebase.'
               : 'No schedules match the current filters.'}
           </p>
         )}
@@ -238,7 +248,7 @@ export default function ScheduleTable({
                   <p className="truncate text-body font-semibold text-slate-900">{s.subject}</p>
                   <p className="truncate text-secondary text-slate-500">{s.teacher || 'No teacher assigned'}</p>
                 </div>
-                <RowActions schedule={s} onEdit={onEdit} onDelete={onDelete} />
+                {!readOnly && <RowActions schedule={s} onEdit={onEdit} onDelete={onDelete} />}
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <TypeBadge type={s.type} />

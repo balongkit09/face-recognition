@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/common/Button';
+import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import { homeForRole } from '../utils/routes';
 
 export default function LoginPage() {
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
 
   if (loading) {
     return (
@@ -45,9 +47,7 @@ export default function LoginPage() {
         code.includes('user-not-found') ||
         code.includes('invalid-email')
       ) {
-        setError(
-          'Incorrect username or password. Faculty sign in with their ID number and password UCMN-<ID number> (unless changed).',
-        );
+        setError('Incorrect username or password.');
       } else if (code.includes('too-many-requests')) {
         setError('Too many failed attempts. Please wait a moment and try again.');
       } else {
@@ -63,16 +63,6 @@ export default function LoginPage() {
       <div className="w-full max-w-md rounded-card border border-border-light bg-white p-8 shadow-card">
         <h1 className="text-h1 font-bold text-slate-900">Sign in</h1>
         <p className="mt-1 text-body text-slate-500">Attendance MS · Admin and Faculty portal</p>
-        <div className="mt-3 grid gap-2 text-body text-slate-600 sm:grid-cols-2">
-          <p className="rounded-btn bg-slate-50 px-3 py-2">
-            <span className="block text-label font-semibold uppercase tracking-wide text-slate-400">Admin</span>
-            <span className="font-semibold">admin</span> / <span className="font-semibold">admin</span>
-          </p>
-          <p className="rounded-btn bg-slate-50 px-3 py-2">
-            <span className="block text-label font-semibold uppercase tracking-wide text-slate-400">Faculty</span>
-            <span className="font-semibold">ID number</span> / <span className="font-semibold">UCMN-&lt;ID&gt;</span>
-          </p>
-        </div>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           {error && (
@@ -98,12 +88,21 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label
-              htmlFor="password"
-              className="mb-1 block text-label font-semibold uppercase tracking-wide text-slate-500"
-            >
-              Password
-            </label>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <label
+                htmlFor="password"
+                className="block text-label font-semibold uppercase tracking-wide text-slate-500"
+              >
+                Password
+              </label>
+              <button
+                type="button"
+                onClick={() => setForgotOpen(true)}
+                className="text-label font-semibold text-primary hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
             <input
               id="password"
               type="password"
@@ -119,6 +118,12 @@ export default function LoginPage() {
           </Button>
         </form>
       </div>
+
+      <ForgotPasswordModal
+        open={forgotOpen}
+        onClose={() => setForgotOpen(false)}
+        initialUsername={email}
+      />
     </div>
   );
 }

@@ -13,7 +13,9 @@ import PlaybackPage from './pages/PlaybackPage';
 import SettingsPage from './pages/SettingsPage';
 import ProfilePage from './pages/ProfilePage';
 import NotificationsPage from './pages/NotificationsPage';
+import RequestsPage from './pages/RequestsPage';
 import FacultyDashboardPage from './pages/faculty/FacultyDashboardPage';
+import FacultySchedulePage from './pages/faculty/FacultySchedulePage';
 import EnrollStudentPage from './pages/faculty/EnrollStudentPage';
 
 function Loading() {
@@ -55,6 +57,7 @@ export default function App() {
         }
       >
         <Route index element={<FacultyDashboardPage />} />
+        <Route path="schedule" element={<FacultySchedulePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="enroll" element={<EnrollStudentPage />} />
         <Route path="monitoring" element={<MonitoringPage />} />
@@ -80,6 +83,7 @@ export default function App() {
         <Route path="schedule" element={<CreateSchedulePage />} />
         <Route path="playback" element={<PlaybackPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="requests" element={<RequestsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Bell, UserPlus, Video, PlayCircle } from 'lucide-react';
+import { LayoutDashboard, CalendarDays, Bell, UserPlus, Video, PlayCircle } from 'lucide-react';
 import AppShell from './AppShell';
 import { useNotifications } from '../hooks/useNotifications';
 import { FACULTY_BASE } from '../utils/routes';
@@ -7,6 +7,7 @@ export { FACULTY_BASE };
 
 const FACULTY_LINKS = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/schedule', icon: CalendarDays, label: 'Schedule' },
   { to: '/notifications', icon: Bell, label: 'Notification', badgeKey: 'notifications' },
   { to: '/enroll', icon: UserPlus, label: 'Enroll Student' },
   { to: '/monitoring', icon: Video, label: 'Monitoring' },

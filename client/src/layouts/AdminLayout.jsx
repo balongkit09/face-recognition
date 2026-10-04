@@ -6,11 +6,13 @@ import {
   CalendarPlus,
   PlayCircle,
   Bell,
+  Inbox,
 } from 'lucide-react';
 import AppShell from './AppShell';
 import { useFaculty } from '../hooks/useFaculty';
 import { useStudents } from '../hooks/useStudents';
 import { useNotifications } from '../hooks/useNotifications';
+import { usePasswordResets } from '../hooks/usePasswordResets';
 
 const ADMIN_LINKS = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -20,12 +22,14 @@ const ADMIN_LINKS = [
   { to: '/schedule', icon: CalendarPlus, label: 'Create Schedule' },
   { to: '/playback', icon: PlayCircle, label: 'Playback' },
   { to: '/notifications', icon: Bell, label: 'Notifications', badgeKey: 'notifications' },
+  { to: '/requests', icon: Inbox, label: 'Request', badgeKey: 'requests' },
 ];
 
 export default function AdminLayout() {
   const { faculty } = useFaculty();
   const { students } = useStudents();
   const { unreadCount } = useNotifications(50);
+  const { requests } = usePasswordResets();
 
   return (
     <AppShell
@@ -34,6 +38,7 @@ export default function AdminLayout() {
         faculty: faculty.length,
         students: students.length,
         notifications: unreadCount || undefined,
+        requests: requests.length || undefined,
       }}
       basePath=""
       brand="Attendance MS"

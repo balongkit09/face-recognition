@@ -88,7 +88,9 @@ export default function FacultyDashboardPage() {
         <section className="overflow-hidden rounded-card border border-border-light bg-white shadow-card">
           <header className="flex items-center justify-between border-b border-border-light px-4 py-3">
             <h2 className="text-base font-semibold text-slate-900">My classes</h2>
-            <span className="text-secondary text-slate-500">{classRows.length} total</span>
+            <Link to={`${FACULTY_BASE}/schedule`} className="text-secondary font-semibold text-primary">
+              View schedule
+            </Link>
           </header>
           {schedulesLoading && <p className="px-4 py-10 text-center text-body text-slate-500">Loading…</p>}
           {!schedulesLoading && classRows.length === 0 && (

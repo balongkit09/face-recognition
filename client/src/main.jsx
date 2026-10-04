@@ -3,7 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import App from './App';
+import { applyTheme, readStoredTheme } from './firebase/preferences';
 import './styles/index.css';
+
+applyTheme(readStoredTheme());
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

@@ -3,6 +3,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import Sidebar from '../components/sidebar/Sidebar';
 import TopBar from '../components/layout/TopBar';
+import { useAuth } from '../hooks/useAuth';
+import { normalizePreferences } from '../firebase/preferences';
 
 const LG = 1024;
 
@@ -20,6 +22,8 @@ export default function AppShell({
   outletContext = {},
 }) {
   const location = useLocation();
+  const { account } = useAuth();
+  const compactTables = normalizePreferences(account?.preferences).compactTables;
   const [search, setSearch] = useState('');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() =>
@@ -89,7 +93,11 @@ export default function AppShell({
           }}
         />
 
-        <main className="min-h-0 min-w-0 flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+        <main
+          className={`min-h-0 min-w-0 flex-1 overflow-auto p-4 sm:p-6 lg:p-8 ${
+            compactTables ? '[&_td]:py-2 [&_th]:py-2' : ''
+          }`}
+        >
           <Outlet context={{ search, ...outletContext }} />
         </main>
       </div>

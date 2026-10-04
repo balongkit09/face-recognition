@@ -7,6 +7,7 @@ import {
   isBootstrapAdminUser,
   signInUser,
 } from '../firebase/bootstrap';
+import { applyTheme, normalizePreferences } from '../firebase/preferences';
 
 export const AuthContext = createContext(null);
 
@@ -75,6 +76,20 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  // Keep the role document live so preferences and profile edits stay in sync.
+  useEffect(() => {
+    if (!user?.uid || !role) return undefined;
+    const col = role === 'admin' ? 'admins' : 'users';
+    const unsubscribe = onSnapshot(
+      doc(db, col, user.uid),
+      (snap) => {
+        if (snap.exists()) setAccount({ id: snap.id, ...snap.data() });
+      },
+      () => {},
+    );
+    return unsubscribe;
+  }, [user?.uid, role]);
+
   // Keep the faculty record live for faculty users.
   useEffect(() => {
     if (role !== 'faculty' || !account?.facultyId) {
@@ -135,9 +150,45 @@ export function AuthProvider({ children }) {
     [role, account?.facultyId],
   );
 
+  const updatePreferences = useCallback(
+    async (partial) => {
+      if (!auth.currentUser || !role) return;
+      const next = { ...normalizePreferences(account?.preferences), ...partial };
+      applyTheme(!!next.darkMode);
+      const col = role === 'admin' ? 'admins' : 'users';
+      await setDoc(
+        doc(db, col, auth.currentUser.uid),
+        { preferences: next, updatedAt: serverTimestamp() },
+        { merge: true },
+      );
+      setAccount((prev) => (prev ? { ...prev, preferences: next } : prev));
+    },
+    [role, account?.preferences],
+  );
+
+  const preferences = normalizePreferences(account?.preferences);
+
+  useEffect(() => {
+    if (!user || !account) return;
+    if (account.preferences && 'darkMode' in account.preferences) {
+      applyTheme(!!account.preferences.darkMode);
+    }
+  }, [user, account]);
+
   const value = useMemo(
-    () => ({ user, role, account, profile, loading, login, logout, updateDisplayName }),
-    [user, role, account, profile, loading, login, logout, updateDisplayName],
+    () => ({
+      user,
+      role,
+      account,
+      profile,
+      preferences,
+      loading,
+      login,
+      logout,
+      updateDisplayName,
+      updatePreferences,
+    }),
+    [user, role, account, profile, preferences, loading, login, logout, updateDisplayName, updatePreferences],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -11,18 +11,20 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import { NOTIFICATIONS_COLLECTION } from '../firebase/notifications';
+import { isVisibleToRole, NOTIFICATIONS_COLLECTION } from '../firebase/notifications';
+import { normalizePreferences } from '../firebase/preferences';
 import { useAuth } from './useAuth';
 
 export function useNotifications(max = 100) {
-  const { user } = useAuth();
+  const { user, role, account } = useAuth();
   const uid = user?.uid;
+  const preferences = normalizePreferences(account?.preferences);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!uid) return undefined;
+    if (!uid || !role) return undefined;
     const q = query(
       collection(db, NOTIFICATIONS_COLLECTION),
       orderBy('createdAt', 'desc'),
@@ -31,8 +33,8 @@ export function useNotifications(max = 100) {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        setNotifications(
-          snapshot.docs.map((d) => {
+        const rows = snapshot.docs
+          .map((d) => {
             const data = d.data();
             return {
               id: d.id,
@@ -40,8 +42,9 @@ export function useNotifications(max = 100) {
               createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null,
               read: Array.isArray(data.readBy) && data.readBy.includes(uid),
             };
-          }),
-        );
+          })
+          .filter((n) => isVisibleToRole(n, { role, uid }));
+        setNotifications(rows);
         setLoading(false);
         setError(null);
       },
@@ -51,9 +54,13 @@ export function useNotifications(max = 100) {
       },
     );
     return unsubscribe;
-  }, [uid, max]);
+  }, [uid, role, max]);
 
-  const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
+  const visible = preferences.inAppNotifications ? notifications : [];
+  const unreadCount = useMemo(() => {
+    if (!preferences.inAppNotifications || !preferences.showUnreadBadge) return 0;
+    return visible.filter((n) => !n.read).length;
+  }, [visible, preferences.inAppNotifications, preferences.showUnreadBadge]);
 
   const markRead = useCallback(
     async (id) => {
@@ -65,16 +72,16 @@ export function useNotifications(max = 100) {
 
   const markAllRead = useCallback(async () => {
     if (!uid) return;
-    const unread = notifications.filter((n) => !n.read);
+    const unread = visible.filter((n) => !n.read);
     if (unread.length === 0) return;
     const batch = writeBatch(db);
     unread.forEach((n) => {
       batch.update(doc(db, NOTIFICATIONS_COLLECTION, n.id), { readBy: arrayUnion(uid) });
     });
     await batch.commit();
-  }, [uid, notifications]);
+  }, [uid, visible]);
 
-  return { notifications, unreadCount, loading, error, markRead, markAllRead };
+  return { notifications: visible, unreadCount, loading, error, markRead, markAllRead, preferences };
 }
 
 export function formatRelativeTime(date) {
