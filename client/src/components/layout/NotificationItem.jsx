@@ -1,10 +1,13 @@
-import { CalendarDays, GraduationCap, KeyRound, Trash2, Upload, Users, Info, Pencil, Plus } from 'lucide-react';
+import { Briefcase, CalendarDays, GraduationCap, KeyRound, Mail, ScanFace, Trash2, Upload, Users, Info, Pencil, Plus } from 'lucide-react';
 import { formatRelativeTime } from '../../hooks/useNotifications';
 
 const ENTITY_ICON = {
   faculty: Users,
   student: GraduationCap,
   schedule: CalendarDays,
+  workingScholar: Briefcase,
+  faceEnroll: ScanFace,
+  message: Mail,
   account: KeyRound,
   system: Info,
 };
@@ -14,6 +17,7 @@ const TYPE_STYLE = {
   update: { icon: Pencil, cls: 'bg-info-bg text-info-text' },
   delete: { icon: Trash2, cls: 'bg-[#fff1f2] text-[#be123c]' },
   import: { icon: Upload, cls: 'bg-[#eef2ff] text-[#4338ca]' },
+  request: { icon: ScanFace, cls: 'bg-[#fffbeb] text-[#b45309]' },
   account: { icon: KeyRound, cls: 'bg-[#fffbeb] text-[#b45309]' },
   info: { icon: Info, cls: 'bg-[#f8fafc] text-slate-600' },
 };

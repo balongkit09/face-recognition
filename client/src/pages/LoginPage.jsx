@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import Button from '../components/common/Button';
 import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import { homeForRole } from '../utils/routes';
+import BrandLogo from '../components/common/BrandLogo';
 
 export default function LoginPage() {
   const { user, role, loading, login } = useAuth();
@@ -61,8 +62,11 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f8fafc] p-4">
       <div className="w-full max-w-md rounded-card border border-border-light bg-white p-8 shadow-card">
-        <h1 className="text-h1 font-bold text-slate-900">Sign in</h1>
-        <p className="mt-1 text-body text-slate-500">Attendance MS · Admin and Faculty portal</p>
+        <div className="flex flex-col items-center text-center">
+          <BrandLogo className="h-16 w-16" alt="UCME logo" />
+          <h1 className="mt-3 text-h1 font-bold text-slate-900">Sign in</h1>
+          <p className="mt-1 text-body text-slate-500">UCME Monitoring Eye · Admin and Faculty portal</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           {error && (

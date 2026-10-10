@@ -4,6 +4,7 @@ import { Bell, CheckCheck, LogOut, Menu, Search, Settings, UserRound } from 'luc
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from './NotificationItem';
+import BrandLogo from '../common/BrandLogo';
 
 function useClickOutside(ref, onOutside) {
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function TopBar({
   onSearchChange,
   onMobileSearchClick,
   basePath = '',
-  brand = 'Attendance MS',
+  brand = 'Monitoring Eye',
   searchPlaceholder = 'Search faculty, students, ID number, EDP code, program...',
 }) {
   const { user, role, profile, logout } = useAuth();
@@ -71,9 +72,7 @@ export default function TopBar({
       </button>
 
       <Link to={basePath || '/'} className="flex min-w-0 shrink-0 items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-white">
-          A
-        </span>
+        <BrandLogo className="h-9 w-9" />
         <span className="hidden truncate text-sm font-semibold text-slate-900 sm:inline">{brand}</span>
       </Link>
 

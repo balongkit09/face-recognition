@@ -12,6 +12,8 @@ const FILTERS = [
   { key: 'faculty', label: 'Faculty' },
   { key: 'student', label: 'Students' },
   { key: 'schedule', label: 'Schedules' },
+  { key: 'workingScholar', label: 'Scholars' },
+  { key: 'faceEnroll', label: 'Face enroll' },
 ];
 
 export default function NotificationsPage() {

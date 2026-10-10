@@ -23,7 +23,7 @@ export default function Modal({ open, onClose, title, children, wide, size }) {
       />
       <div
         className={`relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-card border border-border-light bg-white p-4 shadow-card sm:p-6 ${
-          size === 'xl' ? 'max-w-4xl' : wide ? 'max-w-lg' : 'max-w-md'
+          size === 'xl' ? 'max-w-4xl' : size === 'lg' ? 'max-w-2xl' : wide ? 'max-w-lg' : 'max-w-md'
         }`}
         role="dialog"
         aria-modal="true"

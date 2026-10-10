@@ -70,6 +70,11 @@ service cloud.firestore {
       allow read, write: if isStaff();
     }
 
+    match /workingScholar/{scholarId} {
+      allow read: if isStaff();
+      allow create, update, delete: if isAdmin();
+    }
+
     match /students/{studentId} {
       allow read, write: if isStaff();
     }
@@ -110,6 +115,37 @@ service cloud.firestore {
 
     match /settings/{docId} {
       allow read, write: if isAdmin();
+    }
+
+    match /faceEnrollRequests/{requestId} {
+      allow create: if isFaculty()
+        && request.resource.data.status == 'pending'
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.studentName is string
+        && request.resource.data.studentName.size() > 0;
+      allow read: if isAdmin() || (isFaculty() && resource.data.actorUid == request.auth.uid);
+      allow update, delete: if isAdmin();
+    }
+
+    match /studentMessages/{messageId} {
+      allow create: if isFaculty()
+        && request.resource.data.actorUid == request.auth.uid
+        && request.resource.data.subject is string
+        && request.resource.data.body is string;
+      allow read: if isAdmin() || (isFaculty() && resource.data.actorUid == request.auth.uid);
+      allow update, delete: if isAdmin() || (isFaculty() && resource.data.actorUid == request.auth.uid);
+    }
+
+    // Faculty forgot-password requests from the login page (unauthenticated).
+    match /passwordResets/{requestId} {
+      allow create: if request.resource.data.status == 'pending'
+        && request.resource.data.username is string
+        && request.resource.data.username.size() > 0
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 0
+        && request.resource.data.newPassword is string
+        && request.resource.data.newPassword.size() >= 6;
+      allow read, update, delete: if isAdmin();
     }
 
     match /{document=**} {

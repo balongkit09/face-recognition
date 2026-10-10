@@ -1,16 +1,21 @@
 import { useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Plus, Upload } from 'lucide-react';
+import { Upload, UserPlus } from 'lucide-react';
 import PageHeader from '../../components/common/PageHeader';
 import Button from '../../components/common/Button';
+import BoxedPlusButton from '../../components/common/BoxedPlusButton';
 import StudentTable from '../../components/students/StudentTable';
 import StudentFormModal from '../../components/students/StudentFormModal';
 import ImportClassListModal from '../../components/students/ImportClassListModal';
+import EnrollFaceModal from '../../components/students/EnrollFaceModal';
 import { useConfirm } from '../../components/common/ConfirmDialog';
+import { useAuth } from '../../hooks/useAuth';
 import { useStudents } from '../../hooks/useStudents';
 import { useSchedules } from '../../hooks/useSchedules';
 import { useFaculty } from '../../hooks/useFaculty';
 import { useMyClasses } from '../../hooks/useMyClasses';
+import { useFaceEnrollRequests } from '../../hooks/useFaceEnrollRequests';
+import { requestFaceEnroll } from '../../firebase/faceEnrollRequests';
 
 const SCOPES = [
   { key: 'mine', label: 'My classes' },
@@ -19,16 +24,26 @@ const SCOPES = [
 
 export default function EnrollStudentPage() {
   const { search = '' } = useOutletContext() || {};
+  const { profile, account } = useAuth();
   const { students, loading, error, addStudent, updateStudent, deleteStudent } = useStudents();
   const { schedules, addSchedule } = useSchedules();
   const { faculty } = useFaculty();
   const { myClasses, myStudents, facultyId } = useMyClasses(schedules, students);
+  const { requests: faceRequests } = useFaceEnrollRequests({ pendingOnly: true });
   const { confirm, dialog } = useConfirm();
 
   const [scope, setScope] = useState('mine');
   const [modalOpen, setModalOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [faceOpen, setFaceOpen] = useState(false);
+  const [faceStudent, setFaceStudent] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [faceNotice, setFaceNotice] = useState(null);
+
+  const pendingFaceIds = useMemo(
+    () => new Set(faceRequests.map((r) => r.studentId).filter(Boolean)),
+    [faceRequests],
+  );
 
   const query = search.trim().toLowerCase();
   const rows = useMemo(() => {
@@ -93,8 +108,15 @@ export default function EnrollStudentPage() {
               <Upload className="h-4 w-4" />
               Import Class List
             </Button>
+            <BoxedPlusButton
+              label="Enroll Face"
+              onClick={() => {
+                setFaceStudent(null);
+                setFaceOpen(true);
+              }}
+            />
             <Button onClick={openAdd}>
-              <Plus className="h-4 w-4" />
+              <UserPlus className="h-4 w-4" />
               Enroll Student
             </Button>
           </>
@@ -102,6 +124,15 @@ export default function EnrollStudentPage() {
       />
 
       {error && <p className="mt-4 rounded-btn bg-red-50 px-3 py-2 text-body text-danger">{error}</p>}
+      {faceNotice && (
+        <p
+          className={`mt-4 rounded-btn px-3 py-2 text-body ${
+            faceNotice.type === 'success' ? 'bg-success-bg text-success-text' : 'bg-red-50 text-danger'
+          }`}
+        >
+          {faceNotice.text}
+        </p>
+      )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         {SCOPES.map((s) => (
@@ -125,7 +156,21 @@ export default function EnrollStudentPage() {
         )}
       </div>
 
-      <StudentTable students={rows} loading={loading} onEdit={openEdit} onDelete={handleDelete} />
+      <StudentTable
+        students={rows}
+        loading={loading}
+        onEdit={openEdit}
+        onDelete={handleDelete}
+        onEnrollFace={(student) => {
+          if (pendingFaceIds.has(student.id)) {
+            setFaceNotice({ type: 'error', text: `A face enroll request for ${student.name} is already pending.` });
+            return;
+          }
+          setFaceStudent(student);
+          setFaceOpen(true);
+        }}
+        pendingFaceIds={pendingFaceIds}
+      />
 
       <StudentFormModal
         open={modalOpen}
@@ -148,6 +193,31 @@ export default function EnrollStudentPage() {
         addSchedule={addSchedule}
         defaultTeacherId={facultyId || ''}
         lockTeacher
+      />
+
+      <EnrollFaceModal
+        open={faceOpen}
+        onClose={() => {
+          setFaceOpen(false);
+          setFaceStudent(null);
+        }}
+        students={rows}
+        initialStudent={faceStudent}
+        onSubmit={async ({ student, note }) => {
+          if (pendingFaceIds.has(student.id)) {
+            throw new Error(`A face enroll request for ${student.name} is already pending.`);
+          }
+          await requestFaceEnroll({
+            student,
+            note,
+            facultyId: facultyId || account?.facultyId || '',
+            facultyName: profile?.name || account?.name || '',
+          });
+          setFaceNotice({
+            type: 'success',
+            text: `Request sent to the administrator to enroll ${student.name}'s face.`,
+          });
+        }}
       />
 
       {dialog}

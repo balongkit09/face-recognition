@@ -1,7 +1,8 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import InitialAvatar from '../dashboard/InitialAvatar';
+import { BoxedPlusIcon } from '../common/BoxedPlusButton';
 
-export default function StudentRow({ student, index, onEdit, onDelete }) {
+export default function StudentRow({ student, index, onEdit, onDelete, onEnrollFace, faceRequested }) {
   return (
     <tr className="border-t border-border-light">
       <td className="px-4 py-3 align-middle text-secondary font-medium text-slate-700">
@@ -24,6 +25,26 @@ export default function StudentRow({ student, index, onEdit, onDelete }) {
       </td>
       <td className="px-4 py-3 align-middle">
         <div className="flex items-center gap-1">
+          {onEnrollFace && (
+            <BoxedPlusIcon
+              onClick={() => onEnrollFace(student)}
+              disabled={faceRequested || student.faceEnrolled}
+              label={
+                student.faceEnrolled
+                  ? `${student.name} is already enrolled`
+                  : faceRequested
+                    ? `Face enroll already requested for ${student.name}`
+                    : `Enroll face for ${student.name}`
+              }
+              title={
+                student.faceEnrolled
+                  ? 'Already enrolled'
+                  : faceRequested
+                    ? 'Face enroll request pending'
+                    : 'Enroll Face'
+              }
+            />
+          )}
           <button
             type="button"
             onClick={() => onEdit(student)}

@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ManageFacultyPage from './pages/ManageFacultyPage';
 import ManageStudentPage from './pages/ManageStudentPage';
+import ManageWorkingScholarPage from './pages/ManageWorkingScholarPage';
 import MonitoringPage from './pages/MonitoringPage';
 import CreateSchedulePage from './pages/CreateSchedulePage';
 import PlaybackPage from './pages/PlaybackPage';
@@ -17,6 +18,8 @@ import RequestsPage from './pages/RequestsPage';
 import FacultyDashboardPage from './pages/faculty/FacultyDashboardPage';
 import FacultySchedulePage from './pages/faculty/FacultySchedulePage';
 import EnrollStudentPage from './pages/faculty/EnrollStudentPage';
+import FacultyEmailPage from './pages/faculty/FacultyEmailPage';
+import EnrolledFacePage from './pages/EnrolledFacePage';
 
 function Loading() {
   return (
@@ -60,6 +63,8 @@ export default function App() {
         <Route path="schedule" element={<FacultySchedulePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="enroll" element={<EnrollStudentPage />} />
+        <Route path="enrolled-face" element={<EnrolledFacePage />} />
+        <Route path="email" element={<FacultyEmailPage />} />
         <Route path="monitoring" element={<MonitoringPage />} />
         <Route path="playback" element={<PlaybackPage />} />
         <Route path="profile" element={<ProfilePage />} />
@@ -79,6 +84,8 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="faculty" element={<ManageFacultyPage />} />
         <Route path="students" element={<ManageStudentPage />} />
+        <Route path="enrolled-face" element={<EnrolledFacePage />} />
+        <Route path="working-scholars" element={<ManageWorkingScholarPage />} />
         <Route path="monitoring" element={<MonitoringPage />} />
         <Route path="schedule" element={<CreateSchedulePage />} />
         <Route path="playback" element={<PlaybackPage />} />

@@ -60,7 +60,7 @@ export default function SettingsPage() {
           <p className="mt-4 text-secondary text-slate-500">
             {isFaculty
               ? 'Faculty sign in with their ID number and the generated password (UCMN-<ID number>). Students you enroll are saved to the shared student collection.'
-              : 'Faculty, students and schedules are stored in Cloud Firestore collections faculty, student and schedule. Faculty login accounts are created automatically when a faculty record is added (password UCMN-<ID number>).'}
+              : 'Faculty, students, working scholars and schedules are stored in Cloud Firestore collections faculty, student, workingScholar and schedule. Faculty login accounts are created automatically when a faculty record is added (password UCMN-<ID number>).'}
           </p>
         </section>
       </div>

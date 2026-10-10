@@ -51,6 +51,16 @@ const STATUS_STYLES = {
     text: 'text-[#be123c]',
     dot: 'bg-[#f43f5e]',
   },
+  'Face Enrolled': {
+    bg: 'bg-success-bg',
+    text: 'text-success-text',
+    dot: 'bg-success-dot',
+  },
+  Pending: {
+    bg: 'bg-[#fffbeb]',
+    text: 'text-[#b45309]',
+    dot: 'bg-[#f59e0b]',
+  },
 };
 
 export default function StatusBadge({ status }) {

@@ -75,7 +75,7 @@ export default function PasswordResetRequests({ embedded = false }) {
       {loading && <p className="mt-4 text-body text-slate-500">Loading requests…</p>}
       {!loading && requests.length === 0 && (
         <p className="mt-4 rounded-card border border-border-light bg-white py-10 text-center text-body text-slate-500 shadow-card">
-          No pending faculty requests.
+          No pending password-reset requests.
         </p>
       )}
       {!loading && requests.length > 0 && (

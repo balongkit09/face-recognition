@@ -1,4 +1,5 @@
 import StudentRow from './StudentRow';
+import { BoxedPlusIcon } from '../common/BoxedPlusButton';
 
 const COLUMNS = [
   { key: 'id', label: 'ID Number' },
@@ -9,7 +10,14 @@ const COLUMNS = [
   { key: 'actions', label: 'Settings' },
 ];
 
-export default function StudentTable({ students, loading, onEdit, onDelete }) {
+export default function StudentTable({
+  students,
+  loading,
+  onEdit,
+  onDelete,
+  onEnrollFace,
+  pendingFaceIds = new Set(),
+}) {
   return (
     <div className="mt-4 w-full overflow-hidden rounded-card border border-border-light bg-white shadow-card">
       <div className="hidden overflow-x-auto md:block">
@@ -49,6 +57,8 @@ export default function StudentTable({ students, loading, onEdit, onDelete }) {
                   index={index}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  onEnrollFace={onEnrollFace}
+                  faceRequested={pendingFaceIds.has(student.id)}
                 />
               ))}
           </tbody>
@@ -73,6 +83,26 @@ export default function StudentTable({ students, loading, onEdit, onDelete }) {
                   </p>
                 </div>
                 <div className="flex shrink-0 gap-2">
+                  {onEnrollFace && (
+                    <BoxedPlusIcon
+                      disabled={pendingFaceIds.has(student.id) || student.faceEnrolled}
+                      label={
+                        student.faceEnrolled
+                          ? `${student.name} is already enrolled`
+                          : pendingFaceIds.has(student.id)
+                            ? `Face enroll already requested for ${student.name}`
+                            : `Enroll face for ${student.name}`
+                      }
+                      title={
+                        student.faceEnrolled
+                          ? 'Already enrolled'
+                          : pendingFaceIds.has(student.id)
+                            ? 'Requested'
+                            : 'Enroll Face'
+                      }
+                      onClick={() => onEnrollFace(student)}
+                    />
+                  )}
                   <button type="button" className="text-body text-primary" onClick={() => onEdit(student)}>
                     Edit
                   </button>
