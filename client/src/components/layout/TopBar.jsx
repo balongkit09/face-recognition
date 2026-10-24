@@ -5,6 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from './NotificationItem';
 import BrandLogo from '../common/BrandLogo';
+import { LOGIN_PATH } from '../../utils/routes';
 
 function useClickOutside(ref, onOutside) {
   useEffect(() => {
@@ -27,7 +28,7 @@ export default function TopBar({
 }) {
   const { user, role, profile, logout } = useAuth();
   const navigate = useNavigate();
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications(20);
+  const { notifications, unreadCount, markRead, markAllRead, removeNotification } = useNotifications(20);
   const [notifOpen, setNotifOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const notifRef = useRef(null);
@@ -51,7 +52,7 @@ export default function TopBar({
   const handleLogout = async () => {
     setMenuOpen(false);
     await logout();
-    navigate('/login');
+    navigate(LOGIN_PATH);
   };
 
   const openNotification = async (n) => {
@@ -102,7 +103,6 @@ export default function TopBar({
           Sync: Live
         </span>
 
-        {/* Notifications */}
         <div className="relative" ref={notifRef}>
           <button
             type="button"
@@ -147,7 +147,13 @@ export default function TopBar({
                   </p>
                 ) : (
                   notifications.slice(0, 8).map((n) => (
-                    <NotificationItem key={n.id} notification={n} onClick={openNotification} compact />
+                    <NotificationItem
+                      key={n.id}
+                      notification={n}
+                      onClick={openNotification}
+                      onDelete={(item) => removeNotification(item.id).catch(() => {})}
+                      compact
+                    />
                   ))
                 )}
               </div>
@@ -162,7 +168,6 @@ export default function TopBar({
           )}
         </div>
 
-        {/* Profile menu */}
         <div className="relative" ref={menuRef}>
           <button
             type="button"

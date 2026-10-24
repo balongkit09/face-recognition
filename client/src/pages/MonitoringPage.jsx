@@ -1,7 +1,5 @@
-// TODO: subscribe to `monitoringEvents` collection via onSnapshot for live camera/face-match feed.
-
 import PageHeader from '../components/common/PageHeader';
-import ComingSoonPlaceholder from '../components/common/ComingSoonPlaceholder';
+import Esp32CamFeed from '../components/monitoring/Esp32CamFeed';
 
 export default function MonitoringPage() {
   return (
@@ -10,9 +8,9 @@ export default function MonitoringPage() {
         breadcrumbSection="OPERATIONS"
         breadcrumbPage="LIVE MONITORING"
         title="Monitoring"
-        description="Live camera feeds and face-match events from campus devices."
+        description="Live ESP32-CAM stream, enroll faces from the camera, or open the OV3660 console. The camera must be on the same network."
       />
-      <ComingSoonPlaceholder />
+      <Esp32CamFeed />
     </>
   );
 }

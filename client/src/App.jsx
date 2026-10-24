@@ -1,8 +1,8 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import AdminLayout from './layouts/AdminLayout';
 import FacultyLayout from './layouts/FacultyLayout';
-import { FACULTY_BASE, homeForRole } from './utils/routes';
+import { FACULTY_BASE, LOGIN_PATH, homeForRole } from './utils/routes';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ManageFacultyPage from './pages/ManageFacultyPage';
@@ -20,35 +20,32 @@ import FacultySchedulePage from './pages/faculty/FacultySchedulePage';
 import EnrollStudentPage from './pages/faculty/EnrollStudentPage';
 import FacultyEmailPage from './pages/faculty/FacultyEmailPage';
 import EnrolledFacePage from './pages/EnrolledFacePage';
+import SessionSplash from './components/common/SessionSplash';
 
-function Loading() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <p className="text-body text-slate-500">Loading…</p>
-    </div>
-  );
-}
-
-/** Only lets users with one of `roles` through; others are sent to their own home. */
+/** Dashboard routes: must sign in on /login first, then match the allowed role. */
 function RequireRole({ roles, children }) {
   const { user, role, loading } = useAuth();
+  const location = useLocation();
 
-  if (loading) return <Loading />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (loading) return <SessionSplash />;
+  if (!user || !role) {
+    return <Navigate to={LOGIN_PATH} replace state={{ from: location }} />;
+  }
   if (!roles.includes(role)) return <Navigate to={homeForRole(role)} replace />;
   return children;
 }
 
 function CatchAll() {
-  const { role, loading } = useAuth();
-  if (loading) return <Loading />;
+  const { user, role, loading } = useAuth();
+  if (loading) return <SessionSplash />;
+  if (!user || !role) return <Navigate to={LOGIN_PATH} replace />;
   return <Navigate to={homeForRole(role)} replace />;
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path={LOGIN_PATH} element={<LoginPage />} />
 
       {/* Faculty portal */}
       <Route

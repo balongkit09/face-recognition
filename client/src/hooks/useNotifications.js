@@ -7,6 +7,7 @@ import {
   onSnapshot,
   orderBy,
   query,
+  deleteDoc,
   updateDoc,
   writeBatch,
 } from 'firebase/firestore';
@@ -81,7 +82,34 @@ export function useNotifications(max = 100) {
     await batch.commit();
   }, [uid, visible]);
 
-  return { notifications: visible, unreadCount, loading, error, markRead, markAllRead, preferences };
+  const removeNotification = useCallback(async (id) => {
+    await deleteDoc(doc(db, NOTIFICATIONS_COLLECTION, id));
+  }, []);
+
+  const removeAllNotifications = useCallback(async () => {
+    const ids = visible.map((n) => n.id);
+    if (ids.length === 0) return;
+    const chunkSize = 400;
+    for (let i = 0; i < ids.length; i += chunkSize) {
+      const batch = writeBatch(db);
+      ids.slice(i, i + chunkSize).forEach((id) => {
+        batch.delete(doc(db, NOTIFICATIONS_COLLECTION, id));
+      });
+      await batch.commit();
+    }
+  }, [visible]);
+
+  return {
+    notifications: visible,
+    unreadCount,
+    loading,
+    error,
+    markRead,
+    markAllRead,
+    removeNotification,
+    removeAllNotifications,
+    preferences,
+  };
 }
 
 export function formatRelativeTime(date) {

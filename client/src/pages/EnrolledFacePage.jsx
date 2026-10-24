@@ -5,7 +5,9 @@ import PageHeader from '../components/common/PageHeader';
 import BoxedPlusButton, { BoxedPlusIcon } from '../components/common/BoxedPlusButton';
 import StatusBadge from '../components/common/StatusBadge';
 import InitialAvatar from '../components/dashboard/InitialAvatar';
+import Modal from '../components/common/Modal';
 import EnrollFaceModal from '../components/students/EnrollFaceModal';
+import { FACE_POSES } from '../components/students/FaceCapture';
 import FaceEnrollRequests from '../components/requests/FaceEnrollRequests';
 import { useAuth } from '../hooks/useAuth';
 import { useStudents } from '../hooks/useStudents';
@@ -13,11 +15,75 @@ import { useWorkingScholars } from '../hooks/useWorkingScholars';
 import { useSchedules } from '../hooks/useSchedules';
 import { useMyClasses } from '../hooks/useMyClasses';
 import { useFaceEnrollRequests } from '../hooks/useFaceEnrollRequests';
-import { approveFaceEnroll, enrollScholarFace, enrollStudentFace, requestFaceEnroll } from '../firebase/faceEnrollRequests';
+import {
+  approveFaceEnroll,
+  enrollScholarFace,
+  enrollStudentFace,
+  removeEnrolledFace,
+  requestFaceEnroll,
+} from '../firebase/faceEnrollRequests';
+import { useConfirm } from '../components/common/ConfirmDialog';
 
-function FaceThumb({ src, alt }) {
-  if (!src) return null;
-  return <img src={src} alt={alt} className="h-9 w-9 rounded-md object-cover" />;
+function FaceThumb({ src, alt, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="overflow-hidden rounded-md border border-border-light focus:outline-none focus:ring-2 focus:ring-primary"
+      aria-label={`View ${alt}`}
+    >
+      {src ? (
+        <img src={src} alt={alt} className="h-16 w-16 object-cover" />
+      ) : (
+        <span className="flex h-16 w-16 items-center justify-center bg-[#f8fafc] text-label text-slate-400">—</span>
+      )}
+    </button>
+  );
+}
+
+function FacePhotosViewer({ person, onClose }) {
+  if (!person) return null;
+  const captures = person.faceCaptures || {};
+  return (
+    <Modal open onClose={onClose} title={`${person.name} — enrolled face`} size="lg">
+      <p className="mb-4 text-secondary text-slate-500">
+        ID {person.idNumber || '—'}
+        {person.program ? ` · ${person.program}` : ''}
+        {person.designation ? ` · ${person.designation}` : ''}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {FACE_POSES.map((pose) => (
+          <figure key={pose.key} className="overflow-hidden rounded-card border border-border-light bg-[#f8fafc]">
+            {captures[pose.key] ? (
+              <img
+                src={captures[pose.key]}
+                alt={`${person.name} ${pose.label}`}
+                className="aspect-[3/4] w-full object-cover"
+              />
+            ) : (
+              <div className="flex aspect-[3/4] items-center justify-center text-body text-slate-400">
+                No {pose.label.toLowerCase()} photo
+              </div>
+            )}
+            <figcaption className="px-3 py-2 text-center text-body font-medium text-slate-700">{pose.label}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </Modal>
+  );
+}
+
+function DeleteButton({ label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-body font-medium text-danger hover:underline"
+      aria-label={`Delete ${label}`}
+    >
+      Delete
+    </button>
+  );
 }
 
 export default function EnrolledFacePage() {
@@ -34,6 +100,8 @@ export default function EnrolledFacePage() {
   const [facePerson, setFacePerson] = useState(null);
   const [defaultKind, setDefaultKind] = useState('student');
   const [notice, setNotice] = useState(null);
+  const [viewingPerson, setViewingPerson] = useState(null);
+  const { confirm, dialog } = useConfirm();
 
   const pendingFaceIds = useMemo(
     () => new Set(faceRequests.map((r) => r.studentId).filter(Boolean)),
@@ -86,6 +154,20 @@ export default function EnrolledFacePage() {
     setFaceOpen(true);
   };
 
+  const removeFace = (person) =>
+    confirm({
+      title: 'Delete enrolled face',
+      message: (
+        <>
+          Remove the enrolled face for <strong>{person.name}</strong>? Front, right, and left photos will be deleted.
+        </>
+      ),
+      onConfirm: async () => {
+        await removeEnrolledFace({ person, kind: person.kind });
+        setNotice({ type: 'success', text: `${person.name}'s enrolled face was deleted.` });
+      },
+    });
+
   return (
     <>
       <PageHeader
@@ -128,6 +210,8 @@ export default function EnrolledFacePage() {
         emptyLabel={isAdmin ? 'enroll a student' : 'request enrollment'}
         extraColumn="Program"
         extraValue={(row) => row.program}
+        onDelete={removeFace}
+        onView={setViewingPerson}
       />
 
       {isAdmin && (
@@ -140,6 +224,8 @@ export default function EnrolledFacePage() {
           emptyLabel="enroll a working scholar"
           extraColumn="Designation"
           extraValue={(row) => row.designation}
+          onDelete={removeFace}
+          onView={setViewingPerson}
         />
       )}
 
@@ -198,11 +284,13 @@ export default function EnrolledFacePage() {
           });
         }}
       />
+      <FacePhotosViewer person={viewingPerson} onClose={() => setViewingPerson(null)} />
+      {dialog}
     </>
   );
 }
 
-function EnrolledList({ title, icon: Icon, rows, loading, isAdmin, emptyLabel, extraColumn, extraValue }) {
+function EnrolledList({ title, icon: Icon, rows, loading, isAdmin, emptyLabel, extraColumn, extraValue, onDelete, onView }) {
   return (
     <section className="mt-4 overflow-hidden rounded-card border border-border-light bg-white shadow-card">
       <div className="flex items-center gap-2 border-b border-border-light px-4 py-3">
@@ -215,8 +303,8 @@ function EnrolledList({ title, icon: Icon, rows, loading, isAdmin, emptyLabel, e
         <table className="w-full min-w-[720px] border-collapse text-left">
           <thead>
             <tr className="border-b border-border-light">
-              {['ID Number', 'Full Name', extraColumn, 'Captures', 'Status', 'Enroll'].map((col) => (
-                <th key={col} className="px-4 py-3 text-label font-semibold uppercase tracking-wide text-slate-500">
+              {['ID Number', 'Full Name', extraColumn, 'Captures', 'Status', ''].map((col, index) => (
+                <th key={`${col}-${index}`} className="px-4 py-3 text-label font-semibold uppercase tracking-wide text-slate-500">
                   {col}
                 </th>
               ))}
@@ -249,17 +337,21 @@ function EnrolledList({ title, icon: Icon, rows, loading, isAdmin, emptyLabel, e
                   </td>
                   <td className="px-4 py-3 text-secondary text-slate-700">{extraValue(row) || '—'}</td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      <FaceThumb src={row.faceCaptures?.front} alt={`${row.name} front`} />
-                      <FaceThumb src={row.faceCaptures?.right} alt={`${row.name} right`} />
-                      <FaceThumb src={row.faceCaptures?.left} alt={`${row.name} left`} />
+                    <div className="flex items-center gap-1.5">
+                      <FaceThumb src={row.faceCaptures?.front} alt={`${row.name} front`} onClick={() => onView?.(row)} />
+                      <FaceThumb src={row.faceCaptures?.right} alt={`${row.name} right`} onClick={() => onView?.(row)} />
+                      <FaceThumb src={row.faceCaptures?.left} alt={`${row.name} left`} onClick={() => onView?.(row)} />
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status="Face Enrolled" />
                   </td>
                   <td className="px-4 py-3">
-                    <BoxedPlusIcon disabled label={`${row.name} is already enrolled`} title="Already enrolled" />
+                    {onDelete ? (
+                      <DeleteButton label={`${row.name} enrolled face`} onClick={() => onDelete(row)} />
+                    ) : (
+                      <BoxedPlusIcon disabled label={`${row.name} is already enrolled`} title="Already enrolled" />
+                    )}
                   </td>
                 </tr>
               ))}
@@ -282,13 +374,14 @@ function EnrolledList({ title, icon: Icon, rows, loading, isAdmin, emptyLabel, e
                 ID {row.idNumber}
                 {isAdmin && extraValue(row) ? ` · ${extraValue(row)}` : ''}
               </p>
-              <div className="mt-2 flex gap-1">
-                <FaceThumb src={row.faceCaptures?.front} alt={`${row.name} front`} />
-                <FaceThumb src={row.faceCaptures?.right} alt={`${row.name} right`} />
-                <FaceThumb src={row.faceCaptures?.left} alt={`${row.name} left`} />
+              <div className="mt-2 flex gap-1.5">
+                <FaceThumb src={row.faceCaptures?.front} alt={`${row.name} front`} onClick={() => onView?.(row)} />
+                <FaceThumb src={row.faceCaptures?.right} alt={`${row.name} right`} onClick={() => onView?.(row)} />
+                <FaceThumb src={row.faceCaptures?.left} alt={`${row.name} left`} onClick={() => onView?.(row)} />
               </div>
-              <div className="mt-2">
+              <div className="mt-2 flex items-center justify-between">
                 <StatusBadge status="Face Enrolled" />
+                {onDelete && <DeleteButton label={`${row.name} enrolled face`} onClick={() => onDelete(row)} />}
               </div>
             </article>
           ))}

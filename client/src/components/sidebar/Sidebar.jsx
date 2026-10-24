@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, UserRound } from 'lucide-react';
 import SidebarLink from './SidebarLink';
 import { useAuth } from '../../hooks/useAuth';
+import { LOGIN_PATH } from '../../utils/routes';
 
 /**
  * Generic sidebar. `links` = [{ to, icon, label, badgeKey? }], `counts` maps
@@ -19,7 +20,7 @@ export default function Sidebar({
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate(LOGIN_PATH);
   };
 
   const prefix = (to) => (to === '/' ? basePath || '/' : `${basePath}${to}`);

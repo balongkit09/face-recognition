@@ -117,6 +117,24 @@ export async function enrollScholarFace({ scholar, captures = {} }) {
   });
 }
 
+export async function removeEnrolledFace({ person, kind = 'student' }) {
+  if (!person?.id) throw new Error('Select a record to remove this enrolled face.');
+  const collectionName = kind === 'scholar' ? 'workingScholar' : 'student';
+  await updateDoc(doc(db, collectionName, person.id), {
+    faceEnrolled: false,
+    faceCaptures: { front: '', right: '', left: '' },
+    updatedAt: serverTimestamp(),
+  });
+  notify({
+    type: 'delete',
+    entity: 'faceEnroll',
+    title: `Face enrollment removed: ${person.name}`,
+    message: `ID ${person.idNumber || ''}`,
+    meta: kind === 'scholar' ? { scholarId: person.id } : { studentId: person.id },
+    audience: 'admin',
+  });
+}
+
 export async function rejectFaceEnroll(request) {
   await updateDoc(doc(db, FACE_ENROLL_COLLECTION, request.id), {
     status: 'rejected',

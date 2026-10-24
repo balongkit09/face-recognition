@@ -1,5 +1,10 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, initializeAuth, inMemoryPersistence } from 'firebase/auth';
+import {
+  getAuth,
+  initializeAuth,
+  browserSessionPersistence,
+  inMemoryPersistence,
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
@@ -15,7 +20,16 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+function createSessionAuth(firebaseApp) {
+  try {
+    // Session-only: a new browser visit starts on the login page.
+    return initializeAuth(firebaseApp, { persistence: browserSessionPersistence });
+  } catch {
+    return getAuth(firebaseApp);
+  }
+}
+
+export const auth = createSessionAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);

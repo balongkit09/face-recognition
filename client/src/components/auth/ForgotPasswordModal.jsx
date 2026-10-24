@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { CheckCircle2, KeyRound } from 'lucide-react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
+import PasswordInput from '../common/PasswordInput';
 import { requestPasswordReset } from '../../firebase/passwordResets';
 
 const inputCls =
@@ -118,10 +119,9 @@ export default function ForgotPasswordModal({ open, onClose, initialUsername = '
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="fp-new">New password</Label>
-              <input
+              <PasswordInput
                 id="fp-new"
                 name="newPassword"
-                type="password"
                 value={form.newPassword}
                 onChange={handleChange}
                 required
@@ -132,10 +132,9 @@ export default function ForgotPasswordModal({ open, onClose, initialUsername = '
             </div>
             <div>
               <Label htmlFor="fp-confirm">Confirm new password</Label>
-              <input
+              <PasswordInput
                 id="fp-confirm"
                 name="confirmPassword"
-                type="password"
                 value={form.confirmPassword}
                 onChange={handleChange}
                 required

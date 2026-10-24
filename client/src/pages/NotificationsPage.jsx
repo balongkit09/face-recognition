@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import { CheckCheck } from 'lucide-react';
+import { CheckCheck, Trash2 } from 'lucide-react';
 import PageHeader from '../components/common/PageHeader';
 import Button from '../components/common/Button';
 import NotificationItem from '../components/layout/NotificationItem';
 import { useNotifications } from '../hooks/useNotifications';
 import { useAuth } from '../hooks/useAuth';
+import { useConfirm } from '../components/common/ConfirmDialog';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -18,9 +19,19 @@ const FILTERS = [
 
 export default function NotificationsPage() {
   const { role } = useAuth();
-  const { notifications, unreadCount, loading, error, markRead, markAllRead } = useNotifications(200);
+  const {
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    markRead,
+    markAllRead,
+    removeNotification,
+    removeAllNotifications,
+  } = useNotifications(200);
   const [filter, setFilter] = useState('all');
   const isFaculty = role === 'faculty';
+  const { confirm, dialog } = useConfirm();
 
   const visible = useMemo(() => {
     if (filter === 'all') return notifications;
@@ -40,10 +51,32 @@ export default function NotificationsPage() {
             : 'Faculty activity and system events appear here. Faculty cannot see these admin notifications.'
         }
         actions={
-          <Button variant="outline" onClick={() => markAllRead().catch(() => {})} disabled={!unreadCount}>
-            <CheckCheck className="h-4 w-4" />
-            Mark all as read{unreadCount ? ` (${unreadCount})` : ''}
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => markAllRead().catch(() => {})} disabled={!unreadCount}>
+              <CheckCheck className="h-4 w-4" />
+              Mark all as read{unreadCount ? ` (${unreadCount})` : ''}
+            </Button>
+            <Button
+              variant="danger"
+              disabled={!notifications.length}
+              onClick={() =>
+                confirm({
+                  title: 'Delete all notifications',
+                  message: (
+                    <>
+                      Delete all <strong>{notifications.length}</strong> notification
+                      {notifications.length === 1 ? '' : 's'}? This cannot be undone.
+                    </>
+                  ),
+                  confirmLabel: 'Delete all',
+                  onConfirm: () => removeAllNotifications(),
+                })
+              }
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete all{notifications.length ? ` (${notifications.length})` : ''}
+            </Button>
+          </>
         }
       />
 
@@ -86,9 +119,21 @@ export default function NotificationsPage() {
               onClick={(item) => {
                 if (!item.read) markRead(item.id).catch(() => {});
               }}
+              onDelete={(item) =>
+                confirm({
+                  title: 'Delete notification',
+                  message: (
+                    <>
+                      Delete <strong>{item.title}</strong>? This cannot be undone.
+                    </>
+                  ),
+                  onConfirm: () => removeNotification(item.id),
+                })
+              }
             />
           ))}
       </div>
+      {dialog}
     </>
   );
 }

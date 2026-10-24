@@ -1,30 +1,27 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Button from '../components/common/Button';
 import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
-import { homeForRole } from '../utils/routes';
+import { destinationForRole } from '../utils/routes';
 import BrandLogo from '../components/common/BrandLogo';
+import SessionSplash from '../components/common/SessionSplash';
+import PasswordInput from '../components/common/PasswordInput';
 
 export default function LoginPage() {
   const { user, role, loading, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [forgotOpen, setForgotOpen] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
-        <p className="text-body text-slate-500">Loading…</p>
-      </div>
-    );
-  }
-
+  if (loading) return <SessionSplash />;
   if (user && role) {
-    return <Navigate to={homeForRole(role)} replace />;
+    return <Navigate to={destinationForRole(role, from)} replace />;
   }
 
   const handleSubmit = async (e) => {
@@ -33,7 +30,7 @@ export default function LoginPage() {
     setError('');
     try {
       const signedInRole = await login(email.trim(), password);
-      navigate(homeForRole(signedInRole), { replace: true });
+      navigate(destinationForRole(signedInRole, from), { replace: true });
     } catch (err) {
       const code = String(err.code || '');
       if (code.includes('operation-not-allowed')) {
@@ -107,9 +104,8 @@ export default function LoginPage() {
                 Forgot password?
               </button>
             </div>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="current-password"
               required
               value={password}

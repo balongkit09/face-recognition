@@ -5,6 +5,7 @@ import { doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { KeyRound, UserRound } from 'lucide-react';
 import PageHeader from '../components/common/PageHeader';
 import Button from '../components/common/Button';
+import PasswordInput from '../components/common/PasswordInput';
 import { auth, db } from '../firebase/config';
 import { resolveCredentials } from '../firebase/bootstrap';
 import { useAuth } from '../hooks/useAuth';
@@ -206,16 +207,16 @@ function PasswordSection({ isFaculty, profile }) {
       <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
         <div>
           <Label htmlFor="pw-current">Current password</Label>
-          <input id="pw-current" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} required className={inputCls} />
+          <PasswordInput id="pw-current" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} required className={inputCls} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="pw-next">New password</Label>
-            <input id="pw-next" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} required minLength={6} className={inputCls} />
+            <PasswordInput id="pw-next" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} required minLength={6} className={inputCls} />
           </div>
           <div>
             <Label htmlFor="pw-confirm">Confirm new password</Label>
-            <input id="pw-confirm" type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} className={inputCls} />
+            <PasswordInput id="pw-confirm" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} className={inputCls} />
           </div>
         </div>
         <div className="flex justify-end">

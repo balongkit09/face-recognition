@@ -65,6 +65,15 @@ export function AuthProvider({ children }) {
       // Firestore listeners without permission.
       const resolved = await resolveRole(firebaseUser);
       if (cancelled) return;
+      if (!resolved.role) {
+        await signOut(auth).catch(() => {});
+        setUser(null);
+        setRole(null);
+        setAccount(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
       setUser(firebaseUser);
       setRole(resolved.role);
       setAccount(resolved.account);

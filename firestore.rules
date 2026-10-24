@@ -37,7 +37,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && request.auth.uid == adminId;
       allow create: if isSignedIn()
         && request.auth.uid == adminId
-        && request.auth.token.email == 'admin@face-recognition-f0aad.firebaseapp.com';
+        && request.auth.token.email == 'ucme@admin.com';
       allow update: if isAdmin() || (isSignedIn() && request.auth.uid == adminId && exists(/databases/$(database)/documents/admins/$(adminId)));
       allow delete: if isAdmin();
     }
@@ -100,7 +100,7 @@ service cloud.firestore {
       allow create: if isStaff() && request.resource.data.actorUid == request.auth.uid;
       allow update: if isStaff()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy']);
-      allow delete: if isAdmin();
+      allow delete: if isStaff();
     }
 
     match /monitoringEvents/{eventId} {

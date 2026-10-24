@@ -9,9 +9,8 @@ import { auth, db } from './config';
 const PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'face-recognition-f0aad';
 const AUTH_DOMAIN = `${PROJECT_ID}.firebaseapp.com`;
 
-export const ADMIN_EMAIL = `admin@${AUTH_DOMAIN}`;
-/** Firebase requires 6+ characters. The login form still accepts "admin". */
-export const ADMIN_FIREBASE_PASSWORD = 'admin!';
+export const ADMIN_EMAIL = 'ucme@admin.com';
+export const ADMIN_FIREBASE_PASSWORD = 'ucme@2026';
 
 /** Faculty accounts sign in with their ID number; the Auth email is derived from it. */
 export const FACULTY_PASSWORD_PREFIX = 'UCMN-';
@@ -30,14 +29,12 @@ export function resolveCredentials(username, password) {
   const raw = String(username || '').trim();
   const name = raw.toLowerCase();
   const isBootstrap =
-    name === 'admin' ||
     name === ADMIN_EMAIL ||
-    name === 'admin@local' ||
-    name === 'admin@attendancems.app';
+    name === 'ucme@admin.com';
   if (isBootstrap) {
     return {
       email: ADMIN_EMAIL,
-      password: password === 'admin' ? ADMIN_FIREBASE_PASSWORD : password,
+      password,
       isBootstrap: true,
       kind: 'admin',
     };
